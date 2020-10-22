@@ -1,29 +1,42 @@
 package com.ashraf.top10downloader
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.ListView
 import kotlinx.coroutines.*
 import java.net.URL
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
     override fun onCreate(savedInstanceState: Bundle?) {
-        GlobalScope.launch { // launch a new coroutine in background and continue
-           val result = dataDownload("http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=10/xml")
-               //http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=10/xml
-            Log.d(TAG, result)
-
-        }
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         Log.d(TAG, "OnCreate called")
         Log.d(TAG, "OnCreate done")
 
+        GlobalScope.launch { // launch a new coroutine in background and continue
+           val result = dataDownload("http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=20/xml")
+               //http://ax.itunes.apple.com/WebObjects/MZStoreServices.woa/ws/RSS/topfreeapplications/limit=10/xml
+         //   Log.d(TAG, result)
+           val parseApplication =ParseApplication()
+            parseApplication.parse(result)
+            val propContext: Context = this@MainActivity
+            val listView: ListView = findViewById(R.id.xmlList_view)
+            val arrayAdaptor= FeedAdapter(propContext,R.layout.list_record, parseApplication.applications)
+            withContext(Dispatchers.Main){
+                listView.adapter = arrayAdaptor
+            }
+        }
 
     }
-    suspend fun dataDownload(url:String):String{
-        val url = url
+
+    override fun onDestroy() {
+        super.onDestroy()
+        GlobalScope.cancel("Je teste")
+    }
+    private  fun dataDownload(url:String):String{
         Log.d(TAG, "dataDownload started")
         val rssFeed = downloadXML(url)
         if (rssFeed.isEmpty()){
@@ -32,7 +45,7 @@ class MainActivity : AppCompatActivity() {
         return rssFeed
     }
 
-    suspend fun downloadXML(urlPath: String):String{
+    private fun downloadXML(urlPath: String):String{
         return URL(urlPath).readText()
     }
 //    suspend fun downloadXML(urlPath: String?):String{

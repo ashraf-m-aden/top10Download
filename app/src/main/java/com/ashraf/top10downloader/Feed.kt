@@ -11,7 +11,7 @@ class Feed {
                 name=$name
                 artist=$artist
                 releaseDate=$releaseDate
-                summary=$summary
+              summary = $summary
                 imageUrl=$imageUrl
             """.trimIndent()
     }
